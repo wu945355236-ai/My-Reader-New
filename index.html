@@ -50,6 +50,7 @@
             const icons = {
                 rss: "M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M6 19a1 1 0 1 1-1-1 1 1 0 0 1 1 1z",
                 book: "M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z",
+                chevronLeft: "M15 18l-6-6 6-6",
                 chevronRight: "M9 18l6-6-6-6"
             };
             return (
@@ -61,10 +62,29 @@
 
         function App() {
             const [isStarted, setIsStarted] = useState(false);
+            const [selectedArticle, setSelectedArticle] = useState(null);
             const [articles] = useState([
-                { id: 1, title: "如何高效利用 PWA 提升移动体验", source: "技术周刊", time: "1小时前" },
-                { id: 2, title: "2024年最值得关注的 10 个 RSS 订阅源", source: "深度阅读", time: "3小时前" },
-                { id: 3, title: "iOS 17 的安全区域适配指南", source: "开发者日常", time: "昨天" }
+                { 
+                    id: 1, 
+                    title: "如何高效利用 PWA 提升移动体验", 
+                    source: "技术周刊", 
+                    time: "1小时前",
+                    content: "渐进式 Web 应用 (PWA) 正在改变我们构建移动体验的方式。通过 Service Worker 和 Web App Manifest，开发者可以提供接近原生应用的流畅体验，包括离线访问、推送通知以及添加到主屏幕的功能。在 iOS 17 中，Apple 进一步优化了对 PWA 的支持..."
+                },
+                { 
+                    id: 2, 
+                    title: "2024年最值得关注的 10 个 RSS 订阅源", 
+                    source: "深度阅读", 
+                    time: "3小时前",
+                    content: "在算法推荐泛滥的时代，RSS 依然是获取高质量、纯净信息的最佳方式。我们为你精选了涵盖科技、艺术、独立思考的 10 个优质源，帮助你重回主动阅读的时代..."
+                },
+                { 
+                    id: 3, 
+                    title: "iOS 17 的安全区域适配指南", 
+                    source: "开发者日常", 
+                    time: "昨天",
+                    content: "适配刘海屏和灵动岛是 iOS 开发者的必修课。利用 CSS 的 env(safe-area-inset-top) 等变量，我们可以确保 UI 内容不会被硬件遮挡，同时利用 viewport-fit=cover 获得全屏沉浸感..."
+                }
             ]);
 
             // 欢迎界面
@@ -86,6 +106,40 @@
                 );
             }
 
+            // 文章详情页
+            if (selectedArticle) {
+                return (
+                    <div className="h-screen flex flex-col bg-white">
+                        <header className="safe-top bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 py-3 flex items-center sticky top-0 z-10">
+                            <button 
+                                onClick={() => setSelectedArticle(null)}
+                                className="p-2 -ml-2 text-slate-600 active:bg-slate-100 rounded-full transition-colors"
+                            >
+                                <Icon name="chevronLeft" />
+                            </button>
+                            <div className="ml-2 font-bold truncate text-slate-800">{selectedArticle.source}</div>
+                        </header>
+                        <main className="flex-1 overflow-y-auto p-6 no-scrollbar">
+                            <h1 className="text-2xl font-extrabold text-slate-900 mb-4 leading-tight">
+                                {selectedArticle.title}
+                            </h1>
+                            <div className="text-sm text-slate-400 mb-8 flex items-center gap-2">
+                                <span>{selectedArticle.time}</span>
+                                <span>•</span>
+                                <span>阅读时长 5 分钟</span>
+                            </div>
+                            <div className="prose prose-slate text-slate-700 leading-relaxed text-lg">
+                                {selectedArticle.content.split('\n').map((para, i) => (
+                                    <p key={i} className="mb-4">{para}</p>
+                                ))}
+                                <p className="text-slate-400 italic text-sm mt-12 border-t pt-4">注：此页面内容为演示数据，真实环境下将连接 RSS API 获取实时资讯。</p>
+                            </div>
+                        </main>
+                        <div className="safe-bottom"></div>
+                    </div>
+                );
+            }
+
             // 文章列表界面
             return (
                 <div className="h-screen flex flex-col bg-slate-50">
@@ -96,8 +150,12 @@
 
                     <main className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
                         {articles.map(article => (
-                            <div key={article.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm active:bg-slate-50 transition-colors flex justify-between items-center">
-                                <div>
+                            <div 
+                                key={article.id} 
+                                onClick={() => setSelectedArticle(article)}
+                                className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm active:bg-slate-50 active:scale-[0.98] transition-all flex justify-between items-center"
+                            >
+                                <div className="flex-1 pr-4">
                                     <h3 className="font-bold text-slate-800 mb-1 leading-snug">{article.title}</h3>
                                     <div className="flex text-xs text-slate-400 gap-2">
                                         <span>{article.source}</span>
