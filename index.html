@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>极简阅读器 Pro</title>
+    
+    <!-- 关键：关联配置文件 -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS 专用设置 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="极简阅读">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3669/3669973.png">
+    
+    <!-- 引入 CDN 库 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root { --sat: env(safe-area-inset-top); --sab: env(safe-area-inset-bottom); }
+        body { -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
+        .safe-top { padding-top: var(--sat); }
+        .safe-bottom { padding-bottom: var(--sab); }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        /**
+         * 修复：ServiceWorker 注册错误
+         * 在非标准协议环境（如 Data URL 或部分预览环境）中跳过注册以防止崩溃。
+         * 使用绝对路径构建确保 URL 格式正确。
+         */
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const isLocalOrHttps = window.location.protocol === 'https:' || 
+                                     window.location.hostname === 'localhost' || 
+                                     window.location.hostname === '127.0.0.1';
+                
+                // 只有在标准的 http/https 协议下才尝试注册
+                if (window.location.protocol.startsWith('http')) {
+                    const swUrl = new URL('./sw.js', window.location.href).href;
+                    navigator.serviceWorker.register(swUrl)
+                        .then(() => console.log('PWA SW 注册成功'))
+                        .catch(err => console.warn('PWA 注册受限（可能是预览环境）：', err.message));
+                } else {
+                    console.log('非 HTTP 协议环境，跳过 Service Worker 注册');
+                }
+            });
+        }
+
+        const { useState } = React;
+
+        function App() {
+            return (
+                <div className="h-screen flex flex-col">
+                    <header className="safe-top bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 text-center font-bold sticky top-0">
+                        我的 iOS 阅读器
+                    </header>
+                    <main className="flex-1 p-6 overflow-y-auto">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
+                            <h2 className="text-xl font-bold mb-2 text-blue-600">PWA 部署就绪！</h2>
+                            <p className="text-slate-600 leading-relaxed">
+                                1. 使用 iPhone 的 Safari 打开此页面。<br/>
+                                2. 点击底部的“分享”按钮。<br/>
+                                3. 选择“添加到主屏幕”。
+                            </p>
+                        </div>
+                        <div className="bg-blue-600 p-6 rounded-3xl text-white shadow-lg">
+                            <p className="font-medium">现在，你可以像原生 App 一样使用它了，支持全屏运行。点击下方按钮测试：</p>
+                            <button className="mt-4 w-full py-3 bg-white text-blue-600 rounded-2xl font-bold active:scale-95 transition-transform">
+                                开始阅读
+                            </button>
+                        </div>
+                    </main>
+                    <nav className="safe-bottom bg-white border-t p-4 flex justify-around text-slate-400 font-medium">
+                        <span className="text-blue-600">首页</span>
+                        <span>发现</span>
+                        <span>我的</span>
+                    </nav>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
